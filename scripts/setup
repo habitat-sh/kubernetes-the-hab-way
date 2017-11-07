@@ -1,0 +1,18 @@
+#!/bin/bash
+
+set -euo pipefail
+set -x
+
+vagrant up
+./scripts/list-peers
+
+./scripts/generate-ssl-certificates
+
+vagrant ssh node-0 -- sudo hab sup start schu/etcd --channel unstable --topology leader
+vagrant ssh node-1 -- sudo hab sup start schu/etcd --channel unstable --topology leader --peer 192.168.222.10
+vagrant ssh node-2 -- sudo hab sup start schu/etcd --channel unstable --topology leader --peer 192.168.222.10
+
+cat <<'EOF' | vagrant ssh node-0 -- bash
+for f in /vagrant/certificates/{etcd.pem,etcd-key.pem,ca.pem}; do sudo hab file upload etcd.default 1 "${f}"; done
+EOF
+vagrant ssh node-0 -- sudo hab config apply etcd.default 1 /vagrant/config/svc-etcd.toml
