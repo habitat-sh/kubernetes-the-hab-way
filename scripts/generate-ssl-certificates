@@ -20,3 +20,20 @@ cfssl gencert \
   -hostname=192.168.222.10,192.168.222.11,192.168.222.12,192.168.222.13,192.168.222.14,192.168.222.15,127.0.0.1 \
   -profile=kubernetes \
   etcd-csr.json | cfssljson -bare etcd
+
+# kubernetes
+cfssl gencert \
+  -ca=ca.pem \
+  -ca-key=ca-key.pem \
+  -config=ca-config.json \
+  -hostname=192.168.222.10,192.168.222.11,192.168.222.12,192.168.222.13,192.168.222.14,192.168.222.15,127.0.0.1,kubernetes.default \
+  -profile=kubernetes \
+  kubernetes-csr.json | cfssljson -bare kubernetes
+
+# admin
+cfssl gencert \
+  -ca=ca.pem \
+  -ca-key=ca-key.pem \
+  -config=ca-config.json \
+  -profile=kubernetes \
+  admin-csr.json | cfssljson -bare admin

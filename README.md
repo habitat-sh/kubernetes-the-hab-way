@@ -7,6 +7,11 @@ A demo to show how Kubernetes can be set up with Habitat packages and services.
 * Vagrant
 * `cfssl` and `cfssljson`
 
+## Quickstart
+
+`vagrant destroy -f && ./scripts/setup` can be used to setup everything
+from scratch with a single command.
+
 ## Setup
 
 ### Virtual machines
@@ -69,4 +74,31 @@ All 3 members should be started:
 b82a52a6ff5c63c3, started, node-1, https://192.168.222.11:2380, https://192.168.222.11:2379
 ddfa35d3c9a4c741, started, node-2, https://192.168.222.12:2380, https://192.168.222.12:2379
 f1986a6cf0ad46aa, started, node-0, https://192.168.222.10:2380, https://192.168.222.10:2379
+```
+
+### Kubernetes controller components
+
+#### kubernetes-apiserver service
+
+Start the kubernetes-apiserver service:
+
+```
+# On node-0
+sudo hab sup start schu/kubernetes-apiserver --channel unstable
+```
+
+Now we have to update the kubernetes-apiserver.default service group
+configuration to provide the necessary SSL certificates and keys:
+
+```
+# On node-0
+for f in /vagrant/certificates/{kubernetes.pem,kubernetes-key.pem,ca.pem,ca-key.pem}; do sudo hab file upload kubernetes-apiserver.default 3 "${f}"; done
+sudo hab config apply kubernetes-apiserver.default 1 /vagrant/config/svc-kubernetes-apiserver.toml
+```
+
+Verify the API server is running:
+
+```
+# On the host
+curl --cacert certificates/ca.pem --cert certificates/admin.pem --key certificates/admin-key.pem https://192.168.222.10:6443/version
 ```

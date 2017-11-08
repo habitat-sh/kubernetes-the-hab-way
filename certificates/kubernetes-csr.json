@@ -1,0 +1,16 @@
+{
+  "CN": "Kubernetes",
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "DE",
+      "L": "Berlin",
+      "O": "Kubernetes",
+      "OU": "Kubernetes The Hab Way",
+      "ST": "Berlin"
+    }
+  ]
+}
