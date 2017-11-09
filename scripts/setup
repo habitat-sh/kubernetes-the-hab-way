@@ -3,6 +3,11 @@
 set -euo pipefail
 set -x
 
+readonly dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+pushd "${dir}/../" >/dev/null
+trap 'popd >/dev/null' EXIT
+
 vagrant up
 ./scripts/list-peers
 
