@@ -5,6 +5,7 @@ A demo to show how Kubernetes can be set up with Habitat packages and services.
 ## Requirements
 
 * Vagrant
+* `kubectl`
 * `cfssl` and `cfssljson`
 
 ## Quickstart
@@ -101,4 +102,49 @@ Verify the API server is running:
 ```
 # On the host
 curl --cacert certificates/ca.pem --cert certificates/admin.pem --key certificates/admin-key.pem https://192.168.222.10:6443/version
+```
+
+#### kubernetes-controller-manager
+
+Similar to the kube-apiserver setup, start the service, provide necessary
+files and configure it accordingly:
+
+```
+# On node-0
+sudo hab sup start schu/kubernetes-controller-manager --channel unstable
+
+for f in /vagrant/certificates/{ca.pem,ca-key.pem}; do sudo hab file upload kubernetes-controller-manager.default 1 "${f}"; done
+
+sudo hab config apply kubernetes-controller-manager.default 1 /vagrant/config/svc-kubernetes-controller-manager.toml
+```
+
+#### kubernetes-scheduler
+
+The kube-scheduler doesn't require specific configuration:
+
+```
+# On node-0
+sudo hab sup start schu/kubernetes-scheduler --channel unstable
+```
+
+### Verify the controller is ready
+
+With `./scripts/setup-kubectl` you can configure kubectl with a
+`kubernetes-the-hab-way` context and set it as default.
+
+To verify that all controller components are ready, run:
+
+```
+kubectl get cs
+```
+
+Output should look like this:
+
+```
+NAME                 STATUS    MESSAGE              ERROR
+controller-manager   Healthy   ok
+scheduler            Healthy   ok
+etcd-2               Healthy   {"health": "true"}
+etcd-0               Healthy   {"health": "true"}
+etcd-1               Healthy   {"health": "true"}
 ```

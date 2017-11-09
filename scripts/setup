@@ -30,3 +30,69 @@ cat <<'EOF' | vagrant ssh node-0 -- bash
 for f in /vagrant/certificates/{kubernetes.pem,kubernetes-key.pem,ca.pem,ca-key.pem}; do sudo hab file upload kubernetes-apiserver.default 1 "${f}"; done
 EOF
 vagrant ssh node-0 -- sudo hab config apply kubernetes-apiserver.default 1 /vagrant/config/svc-kubernetes-apiserver.toml
+
+# wait a moment for the kube apiserver to start and verify it's running
+until version=$(curl --cacert certificates/ca.pem --cert certificates/admin.pem --key certificates/admin-key.pem https://192.168.222.10:6443/version); do echo "waiting for kube-apiserver to come up"; sleep 1; done
+echo "${version}"
+
+# setting up the kube-controller-manager
+vagrant ssh node-0 -- sudo hab sup start schu/kubernetes-controller-manager --channel unstable
+
+cat <<'EOF' | vagrant ssh node-0 -- bash
+for f in /vagrant/certificates/{ca.pem,ca-key.pem}; do sudo hab file upload kubernetes-controller-manager.default 1 "${f}"; done
+EOF
+vagrant ssh node-0 -- sudo hab config apply kubernetes-controller-manager.default 1 /vagrant/config/svc-kubernetes-controller-manager.toml
+
+# setting up the kube-scheduler
+vagrant ssh node-0 -- sudo hab sup start schu/kubernetes-scheduler --channel unstable
+
+# wait a moment for the kube-scheduler to start
+sleep 5
+
+# configure host kubectl context
+./scripts/setup-kubectl
+
+# check if all controller components are healthy
+if kubectl get cs | grep -q -i unhealthy; then
+  echo "Found unhealthy controller components" >&2
+  exit 1
+fi
+
+# RBAC for kubelet authorization
+cat <<EOF | kubectl apply -f -
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  annotations:
+    rbac.authorization.kubernetes.io/autoupdate: "true"
+  labels:
+    kubernetes.io/bootstrapping: rbac-defaults
+  name: system:kube-apiserver-to-kubelet
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - nodes/proxy
+      - nodes/stats
+      - nodes/log
+      - nodes/spec
+      - nodes/metrics
+    verbs:
+      - "*"
+EOF
+
+cat <<EOF | kubectl apply -f -
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: system:kube-apiserver
+  namespace: ""
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:kube-apiserver-to-kubelet
+subjects:
+  - apiGroup: rbac.authorization.k8s.io
+    kind: User
+    name: Kubernetes
+EOF
