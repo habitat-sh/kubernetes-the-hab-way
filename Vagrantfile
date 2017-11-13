@@ -14,6 +14,8 @@ Vagrant.configure("2") do |config|
         c.vm.hostname = "node-#{n}"
         c.vm.network "private_network", ip: "192.168.222.1#{n}"
         c.vm.provision :shell, :path => "scripts/vagrant/setup-routes.bash"
+        c.vm.provision :shell, :path => "scripts/vagrant/install-docker.bash"
+        c.vm.provision :shell, :path => "scripts/vagrant/install-cni-plugins.bash"
 
         c.vm.provision :shell, :path => "scripts/install-tools"
         c.vm.provision :shell, :path => "scripts/install-hab"
