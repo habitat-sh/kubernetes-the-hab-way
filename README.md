@@ -15,7 +15,8 @@ vagrant destroy -f && ./scripts/setup
 ```
 
 can be used to setup everything from scratch with a single command. Setup will
-take several minutes.
+take several minutes. Use the [smoke test](#smoke-test) to verify things work
+correctly.
 
 ## Setup
 
@@ -284,6 +285,12 @@ node-1    Ready     <none>    23m       v1.8.2
 node-2    Ready     <none>    23m       v1.8.2
 ```
 
-### Smoke test
+## Smoke test
 
-TODO
+Test the setup by creating a Nginx deployment, expose it and send a request
+to the service IP:
+
+```
+sudo route add -net 10.32.0.0/24 gw 192.168.222.10
+./scripts/smoke-test
+```
