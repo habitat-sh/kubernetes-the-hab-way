@@ -1,0 +1,10 @@
+#!/bin/bash
+
+set -euo pipefail
+
+readonly peer="$1"
+readonly service="$2"
+readonly group="${3:-default}"
+
+curl -sSL "http://${peer}:9631/services/${service}/${group}/health" \
+  | jq -r '.'
