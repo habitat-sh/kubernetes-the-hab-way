@@ -1,12 +1,13 @@
 # Kubernetes The Hab Way
 
-A demo to show how Kubernetes can be set up with Habitat packages and services.
+Kubernetes the Hab way shows setting up a Kubernetes cluster in which
+Kubernetes components are [Habitat](habitat.sh) packages and services.
 
 ## Requirements
 
-* Vagrant
-* `kubectl`
-* `cfssl` and `cfssljson`
+* [Vagrant](https://www.vagrantup.com/downloads.html)
+* [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
+* [cfssl](https://github.com/cloudflare/cfssl#installation) (with cfssljson)
 
 ## Quickstart
 
@@ -14,11 +15,11 @@ A demo to show how Kubernetes can be set up with Habitat packages and services.
 vagrant destroy -f && ./scripts/setup
 ```
 
-can be used to setup everything from scratch with a single command. Setup will
-take several minutes. Use the [smoke test](#smoke-test) to verify things work
-correctly.
+The above command can be used to setup everything from scratch with a single
+command. Setup will take several minutes. Use the [smoke test](#smoke-test) to
+verify things work correctly.
 
-## Setup
+## Step-by-step Setup
 
 ### Virtual machines
 
