@@ -106,7 +106,7 @@ configuration to provide the necessary SSL certificates and keys:
 
 ```
 # On node-0
-for f in /vagrant/certificates/{kubernetes.pem,kubernetes-key.pem,ca.pem,ca-key.pem}; do sudo hab file upload kubernetes-apiserver.default 3 "${f}"; done
+for f in /vagrant/certificates/{kubernetes.pem,kubernetes-key.pem,ca.pem,ca-key.pem}; do sudo hab file upload kubernetes-apiserver.default 1 "${f}"; done
 sudo hab config apply kubernetes-apiserver.default 1 /vagrant/config/svc-kubernetes-apiserver.toml
 ```
 
