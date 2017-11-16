@@ -1,0 +1,8 @@
+#!/bin/bash
+
+set -euo pipefail
+
+readonly peer="${1:-192.168.222.10}"
+
+curl -sS "http://${peer}:9631/butterfly" | \
+  jq -r '.member.members[].proto.address'

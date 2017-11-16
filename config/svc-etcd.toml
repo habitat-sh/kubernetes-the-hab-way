@@ -1,0 +1,12 @@
+etcd-auto-tls = "false"
+etcd-http-proto = "https"
+
+etcd-client-cert-auth = "true"
+etcd-cert-file = "files/etcd.pem"
+etcd-key-file = "files/etcd-key.pem"
+etcd-trusted-ca-file = "files/ca.pem"
+
+etcd-peer-client-cert-auth = "true"
+etcd-peer-cert-file = "files/etcd.pem"
+etcd-peer-key-file = "files/etcd-key.pem"
+etcd-peer-trusted-ca-file = "files/ca.pem"

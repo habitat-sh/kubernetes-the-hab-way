@@ -1,0 +1,79 @@
+#!/bin/bash
+
+set -euo pipefail
+
+readonly dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+pushd "${dir}/../certificates" >/dev/null
+trap 'popd >/dev/null' EXIT
+
+find . \( -iname '*.csr' -o -iname '*.pem' \) -print0 | xargs -0 -r rm -v
+
+# ca
+cfssl gencert -initca ca-csr.json | cfssljson -bare ca
+
+# etcd
+cfssl gencert \
+  -ca=ca.pem \
+  -ca-key=ca-key.pem \
+  -config=ca-config.json \
+  -hostname=192.168.222.10,192.168.222.11,192.168.222.12,192.168.222.13,192.168.222.14,192.168.222.15,127.0.0.1 \
+  -profile=kubernetes \
+  etcd-csr.json | cfssljson -bare etcd
+
+# kubernetes
+cfssl gencert \
+  -ca=ca.pem \
+  -ca-key=ca-key.pem \
+  -config=ca-config.json \
+  -hostname=192.168.222.10,192.168.222.11,192.168.222.12,192.168.222.13,192.168.222.14,192.168.222.15,127.0.0.1,kubernetes.default \
+  -profile=kubernetes \
+  kubernetes-csr.json | cfssljson -bare kubernetes
+
+# admin
+cfssl gencert \
+  -ca=ca.pem \
+  -ca-key=ca-key.pem \
+  -config=ca-config.json \
+  -profile=kubernetes \
+  admin-csr.json | cfssljson -bare admin
+
+# proxy
+cfssl gencert \
+  -ca=ca.pem \
+  -ca-key=ca-key.pem \
+  -config=ca-config.json \
+  -profile=kubernetes \
+  kube-proxy-csr.json | cfssljson -bare kube-proxy
+
+# node
+for i in {0..5}; do
+  read -r -d '' CSR << EOF || true # absorb non-zero return from read
+{
+  "CN": "system:node:node-${i}",
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "DE",
+      "L": "Berlin",
+      "O": "system:nodes",
+      "OU": "Kubernetes The Hab Way",
+      "ST": "Berlin"
+    }
+  ]
+}
+EOF
+
+  mkdir -p "node-${i}"
+
+  echo "${CSR}" | cfssl gencert \
+    -ca=ca.pem \
+    -ca-key=ca-key.pem \
+    -config=ca-config.json \
+    -hostname="node-${i},192.168.222.1${i}" \
+    -profile=kubernetes \
+    - | cfssljson -bare "node-${i}/node"
+done

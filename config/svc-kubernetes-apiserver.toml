@@ -1,0 +1,18 @@
+client-ca-file = "files/ca.pem"
+
+etcd-cafile = "files/ca.pem"
+etcd-certfile = "files/kubernetes.pem"
+etcd-keyfile = "files/kubernetes-key.pem"
+etcd-servers = "https://192.168.222.10:2379,https://192.168.222.11:2379,https://192.168.222.12:2379"
+
+kubelet-certificate-authority = "files/ca.pem"
+kubelet-client-certificate = "files/kubernetes.pem"
+kubelet-client-key = "files/kubernetes-key.pem"
+
+service-account-key-file = "files/ca-key.pem"
+
+tls-ca-file = "files/ca.pem"
+tls-cert-file = "files/kubernetes.pem"
+tls-private-key-file = "files/kubernetes-key.pem"
+
+verbosity=5

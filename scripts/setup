@@ -1,0 +1,145 @@
+#!/bin/bash
+
+set -euo pipefail
+set -x
+
+readonly dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+pushd "${dir}/../" >/dev/null
+trap 'popd >/dev/null' EXIT
+
+vagrant up
+./scripts/list-peers
+
+./scripts/generate-ssl-certificates
+./scripts/generate-kubeconfig
+
+# set up etcd
+vagrant ssh node-0 -- sudo hab sup start schu/etcd --topology leader
+vagrant ssh node-1 -- sudo hab sup start schu/etcd --topology leader --peer 192.168.222.10
+vagrant ssh node-2 -- sudo hab sup start schu/etcd --topology leader --peer 192.168.222.10
+
+cat <<'EOF' | vagrant ssh node-0 -- bash
+for f in /vagrant/certificates/{etcd.pem,etcd-key.pem,ca.pem}; do sudo hab file upload etcd.default 1 "${f}"; done
+EOF
+vagrant ssh node-0 -- sudo hab config apply etcd.default 1 /vagrant/config/svc-etcd.toml
+
+# set up kube-apiserver
+vagrant ssh node-0 -- sudo hab sup start schu/kubernetes-apiserver
+
+cat <<'EOF' | vagrant ssh node-0 -- bash
+for f in /vagrant/certificates/{kubernetes.pem,kubernetes-key.pem,ca.pem,ca-key.pem}; do sudo hab file upload kubernetes-apiserver.default 1 "${f}"; done
+EOF
+vagrant ssh node-0 -- sudo hab config apply kubernetes-apiserver.default 1 /vagrant/config/svc-kubernetes-apiserver.toml
+
+# wait a moment for the kube apiserver to start and verify it's running
+until version=$(curl --cacert certificates/ca.pem --cert certificates/admin.pem --key certificates/admin-key.pem https://192.168.222.10:6443/version); do echo "waiting for kube-apiserver to come up"; sleep 1; done
+echo "${version}"
+
+# set up the kube-controller-manager
+vagrant ssh node-0 -- sudo hab sup start schu/kubernetes-controller-manager
+
+cat <<'EOF' | vagrant ssh node-0 -- bash
+for f in /vagrant/certificates/{ca.pem,ca-key.pem}; do sudo hab file upload kubernetes-controller-manager.default 1 "${f}"; done
+EOF
+vagrant ssh node-0 -- sudo hab config apply kubernetes-controller-manager.default 1 /vagrant/config/svc-kubernetes-controller-manager.toml
+
+# set up the kube-scheduler
+vagrant ssh node-0 -- sudo hab sup start schu/kubernetes-scheduler
+
+# wait a moment for the kube-scheduler to start
+sleep 5
+
+# configure host kubectl context
+./scripts/setup-kubectl
+
+# check if all controller components are healthy
+if kubectl get cs | grep -q -i unhealthy; then
+  echo "Found unhealthy controller components" >&2
+  exit 1
+fi
+
+# RBAC for kubelet authorization
+cat <<EOF | kubectl apply -f -
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  annotations:
+    rbac.authorization.kubernetes.io/autoupdate: "true"
+  labels:
+    kubernetes.io/bootstrapping: rbac-defaults
+  name: system:kube-apiserver-to-kubelet
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - nodes/proxy
+      - nodes/stats
+      - nodes/log
+      - nodes/spec
+      - nodes/metrics
+    verbs:
+      - "*"
+EOF
+
+cat <<EOF | kubectl apply -f -
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: system:kube-apiserver
+  namespace: ""
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:kube-apiserver-to-kubelet
+subjects:
+  - apiGroup: rbac.authorization.k8s.io
+    kind: User
+    name: Kubernetes
+EOF
+
+# set up kube-proxy
+for i in {0..2}; do
+  cat <<EOF | vagrant ssh node-${i} -- sudo bash
+mkdir -p /var/lib/kube-proxy
+cp /vagrant/config/kube-proxy.kubeconfig /var/lib/kube-proxy/kubeconfig
+hab sup start schu/kubernetes-proxy
+hab config apply kubernetes-proxy.default 1 /vagrant/config/svc-kubernetes-proxy.toml # noop on repeated calls
+EOF
+done
+
+# set up kubelet
+for i in {0..2}; do
+  cat <<EOF | vagrant ssh node-${i} -- sudo bash
+  mkdir -p /var/lib/kubelet-config/cni
+  cat >/var/lib/kubelet-config/kubelet <<KUBELET_CONFIG
+  {
+    "kind": "KubeletConfiguration",
+    "apiVersion": "kubeletconfig/v1alpha1",
+    "podCIDR": "10.2${i}.0.0/16"
+  }
+KUBELET_CONFIG
+ cat >/var/lib/kubelet-config/cni/10-bridge.conf <<CNI_CONFIG
+  {
+    "cniVersion": "0.3.1",
+    "name": "bridge",
+    "type": "bridge",
+    "bridge": "cnio0",
+    "isGateway": true,
+    "ipMasq": true,
+    "ipam": {
+      "type": "host-local",
+      "ranges": [
+        [{"subnet": "10.2${i}.0.0/16"}]
+      ],
+      "routes": [{"dst": "0.0.0.0/0"}]
+    }
+  }
+CNI_CONFIG
+EOF
+  cat <<'EOF' | vagrant ssh node-${i} -- sudo bash
+for f in /vagrant/certificates/{$(hostname)/node.pem,$(hostname)/node-key.pem,ca.pem} /vagrant/config/$(hostname)/kubeconfig; do sudo cp "${f}" "/var/lib/kubelet-config/"; done
+sudo hab sup start schu/kubernetes-kubelet
+sudo hab config apply kubernetes-kubelet.default 1 /vagrant/config/svc-kubelet.toml # noop on repeated calls
+EOF
+done

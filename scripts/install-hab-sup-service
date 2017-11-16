@@ -1,0 +1,21 @@
+#!/bin/bash
+
+set -euo pipefail
+
+readonly optargs="$*"
+
+cat >/etc/systemd/system/hab-sup.service <<EOF
+[Unit]
+Description=The Habitat Supervisor
+
+[Service]
+ExecStart=/usr/local/bin/hab sup run ${optargs}
+Restart=no
+
+[Install]
+WantedBy=default.target
+EOF
+
+systemctl daemon-reload
+systemctl enable hab-sup
+systemctl start hab-sup

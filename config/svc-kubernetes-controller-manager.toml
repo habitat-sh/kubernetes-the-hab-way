@@ -1,0 +1,6 @@
+cluster-signing-cert-file = "files/ca.pem"
+cluster-signing-key-file = "files/ca-key.pem"
+
+root-ca-file = "files/ca.pem"
+
+service-account-private-key-file = "files/ca-key.pem"

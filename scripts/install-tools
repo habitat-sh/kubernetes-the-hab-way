@@ -1,0 +1,17 @@
+#!/bin/bash
+
+set -euo pipefail
+
+readonly dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+readonly tmpdir=$(mktemp -d /tmp/kubernetes-the-hab-way-XXXXXX)
+mkdir -p "${tmpdir}"
+
+pushd "${tmpdir}" >/dev/null
+trap 'popd >/dev/null; rm -rf "${tmpdir}"' EXIT
+
+readonly etcd_version="v3.2.9"
+readonly etcd_url="https://github.com/coreos/etcd/releases/download/${etcd_version}/etcd-${etcd_version}-linux-amd64.tar.gz"
+
+curl -sSL "${etcd_url}" -o etcd.tar.gz
+tar -xvf etcd.tar.gz --strip-components 1
+install -m 0755 etcdctl /usr/local/bin/

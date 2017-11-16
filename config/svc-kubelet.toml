@@ -1,0 +1,8 @@
+kubeconfig = "/var/lib/kubelet-config/kubeconfig"
+
+client-ca-file = "/var/lib/kubelet-config/ca.pem"
+
+tls-cert-file = "/var/lib/kubelet-config/node.pem"
+tls-private-key-file = "/var/lib/kubelet-config/node-key.pem"
+
+cni-conf-dir = "/var/lib/kubelet-config/cni/"
