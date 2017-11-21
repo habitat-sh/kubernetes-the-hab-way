@@ -246,7 +246,10 @@ e.g. `KUBE-SERVICES`.
 To reach services from your host, you can do:
 
 ```
+# On Linux
 sudo route add -net 10.32.0.0/24 gw 192.168.222.10
+# On macOS
+sudo route -n add -net 10.32.0.0/24 192.168.222.10
 ```
 
 #### kubelet
@@ -306,6 +309,11 @@ Test the setup by creating a Nginx deployment, expose it and send a request
 to the service IP:
 
 ```
+# On Linux
 sudo route add -net 10.32.0.0/24 gw 192.168.222.10
+# On macOS
+sudo route -n add -net 10.32.0.0/24 192.168.222.10
+
+# Run the smoke test
 ./scripts/smoke-test
 ```
