@@ -5,6 +5,7 @@ Kubernetes components are [Habitat](habitat.sh) packages and services.
 
 ## Requirements
 
+* Linux or MacOS on the host (Windows is not supported)
 * [Vagrant](https://www.vagrantup.com/downloads.html)
 * [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
 * [cfssl](https://github.com/cloudflare/cfssl#installation) (with cfssljson)
