@@ -7,7 +7,7 @@ readonly dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 pushd "${dir}/../certificates" >/dev/null
 trap 'popd >/dev/null' EXIT
 
-find . \( -iname '*.csr' -o -iname '*.pem' \) -print0 | xargs -0 -r rm -v
+find . \( -iname '*.csr' -o -iname '*.pem' \) -print0 | xargs -0 rm -vf
 
 # ca
 cfssl gencert -initca ca-csr.json | cfssljson -bare ca
