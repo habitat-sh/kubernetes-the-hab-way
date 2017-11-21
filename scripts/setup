@@ -19,6 +19,17 @@ vagrant ssh node-0 -- sudo hab sup start schu/etcd --topology leader
 vagrant ssh node-1 -- sudo hab sup start schu/etcd --topology leader --peer 192.168.222.10
 vagrant ssh node-2 -- sudo hab sup start schu/etcd --topology leader --peer 192.168.222.10
 
+for i in {0..2}; do
+  cat <<EOF | vagrant ssh node-${i} -- sudo bash
+cat >/var/lib/etcd-env-vars <<ETCD_ENV_VARS
+export ETCD_LISTEN_CLIENT_URLS="https://192.168.222.1${i}:2379"
+export ETCD_LISTEN_PEER_URLS="https://192.168.222.1${i}:2380"
+export ETCD_ADVERTISE_CLIENT_URLS="https://192.168.222.1${i}:2379"
+export ETCD_INITIAL_ADVERTISE_PEER_URLS="https://192.168.222.1${i}:2380"
+ETCD_ENV_VARS
+EOF
+done
+
 cat <<'EOF' | vagrant ssh node-0 -- bash
 for f in /vagrant/certificates/{etcd.pem,etcd-key.pem,ca.pem}; do sudo hab file upload etcd.default 1 "${f}"; done
 EOF

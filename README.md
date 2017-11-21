@@ -64,6 +64,20 @@ members are alive, the service will start. We take advantage of that to make
 sure all three etcd member nodes start with the same "initial cluster" setting
 (and therefore have the same cluster ID to be able to form a cluster).
 
+For each node and service instance, we have to add an etcd environment config
+file with service instance specific configuration, as that's not supported
+by Habitat (as far as I know).
+
+```
+# On each node, replace X with node number (i.e. '0' for node-0 and so on)
+cat >/var/lib/etcd-env-vars <<ETCD_ENV_VARS
+export ETCD_LISTEN_CLIENT_URLS="https://192.168.222.1X:2379"
+export ETCD_LISTEN_PEER_URLS="https://192.168.222.1X:2380"
+export ETCD_ADVERTISE_CLIENT_URLS="https://192.168.222.1X:2379"
+export ETCD_INITIAL_ADVERTISE_PEER_URLS="https://192.168.222.1X:2380"
+ETCD_ENV_VARS
+```
+
 Now we have to update the etcd.default service group configuration to make etcd
 use our SSL certifcates (this has only to be done once for a service group; we
 use node-0 here):
