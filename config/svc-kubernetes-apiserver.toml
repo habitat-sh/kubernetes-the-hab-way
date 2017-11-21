@@ -1,3 +1,5 @@
+advertise-address = "192.168.222.10"
+
 client-ca-file = "files/ca.pem"
 
 etcd-cafile = "files/ca.pem"

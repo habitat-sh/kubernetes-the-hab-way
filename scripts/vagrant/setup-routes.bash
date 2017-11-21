@@ -2,9 +2,6 @@
 
 set -euo pipefail
 
-route add default gw 192.168.222.1
-eval "$(route -n | awk '{ if ($8 =="enp0s3" && $2 != "0.0.0.0") print "route del default gw " $2; }')"
-
 case "$(hostname)" in
   node-0)
     route add -net 10.21.0.0/16 gw 192.168.222.11

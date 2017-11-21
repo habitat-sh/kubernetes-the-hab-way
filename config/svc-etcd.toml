@@ -1,6 +1,9 @@
 etcd-auto-tls = "false"
 etcd-http-proto = "https"
 
+etcd-listen-host-ip = "0.0.0.0"
+etcd-initial-cluster = "node-0=https://192.168.222.10:2380,node-1=https://192.168.222.11:2380,node-2=https://192.168.222.12:2380"
+
 etcd-client-cert-auth = "true"
 etcd-cert-file = "files/etcd.pem"
 etcd-key-file = "files/etcd-key.pem"
@@ -10,3 +13,5 @@ etcd-peer-client-cert-auth = "true"
 etcd-peer-cert-file = "files/etcd.pem"
 etcd-peer-key-file = "files/etcd-key.pem"
 etcd-peer-trusted-ca-file = "files/ca.pem"
+
+etcd-env-vars-file = "/var/lib/etcd-env-vars"
