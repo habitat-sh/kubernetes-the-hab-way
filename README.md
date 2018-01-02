@@ -54,10 +54,10 @@ First we start etcd:
 
 ```
 # On node-0
-sudo hab sup start schu/etcd --topology leader
+sudo hab sup start core/etcd --topology leader
 
 # On node-1 and node-2
-sudo hab sup start schu/etcd --topology leader --peer 192.168.222.10
+sudo hab sup start core/etcd --topology leader --peer 192.168.222.10
 ```
 
 NB: a service with topology `leader` requires at least 3 members. Only when 3
@@ -113,7 +113,7 @@ Start the kubernetes-apiserver service:
 
 ```
 # On node-0
-sudo hab sup start schu/kubernetes-apiserver
+sudo hab sup start core/kubernetes-apiserver
 ```
 
 Now we have to update the kubernetes-apiserver.default service group
@@ -139,7 +139,7 @@ files and configure it accordingly:
 
 ```
 # On node-0
-sudo hab sup start schu/kubernetes-controller-manager
+sudo hab sup start core/kubernetes-controller-manager
 for f in /vagrant/certificates/{ca.pem,ca-key.pem}; do sudo hab file upload kubernetes-controller-manager.default 1 "${f}"; done
 sudo hab config apply kubernetes-controller-manager.default 1 /vagrant/config/svc-kubernetes-controller-manager.toml
 ```
@@ -150,7 +150,7 @@ The kube-scheduler doesn't require specific configuration:
 
 ```
 # On node-0
-sudo hab sup start schu/kubernetes-scheduler
+sudo hab sup start core/kubernetes-scheduler
 ```
 
 ### `kubernetes-the-hab-way` kubectl context
@@ -232,13 +232,13 @@ Configure and start kube-proxy:
 # On node-0
 sudo mkdir -p /var/lib/kube-proxy
 sudo cp /vagrant/config/kube-proxy.kubeconfig /var/lib/kube-proxy/kubeconfig
-sudo hab sup start schu/kubernetes-proxy
+sudo hab sup start core/kubernetes-proxy
 sudo hab config apply kubernetes-proxy.default 1 /vagrant/config/svc-kubernetes-proxy.toml
 
 # On node-1 and node-2
 sudo mkdir -p /var/lib/kube-proxy
 sudo cp /vagrant/config/kube-proxy.kubeconfig /var/lib/kube-proxy/kubeconfig
-sudo hab sup start schu/kubernetes-proxy
+sudo hab sup start core/kubernetes-proxy
 ```
 
 After successful setup, `iptables -nvL -t nat` will show multiple new chains,
@@ -285,7 +285,7 @@ cat >/var/lib/kubelet-config/cni/10-bridge.conf <<CNI_CONFIG
 }
 CNI_CONFIG
 for f in /vagrant/certificates/{$(hostname)/node.pem,$(hostname)/node-key.pem,ca.pem} /vagrant/config/$(hostname)/kubeconfig; do sudo cp "${f}" "/var/lib/kubelet-config/"; done
-sudo hab sup start schu/kubernetes-kubelet
+sudo hab sup start core/kubernetes-kubelet
 sudo hab config apply kubernetes-kubelet.default 1 /vagrant/config/svc-kubelet.toml # noop on repeated calls
 ```
 

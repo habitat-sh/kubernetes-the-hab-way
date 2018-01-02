@@ -8,6 +8,8 @@ readonly dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 pushd "${dir}/../" >/dev/null
 trap 'popd >/dev/null' EXIT
 
+readonly channel="stable"
+
 vagrant up
 ./scripts/list-peers
 
@@ -15,9 +17,9 @@ vagrant up
 ./scripts/generate-kubeconfig
 
 # set up etcd
-vagrant ssh node-0 -- sudo hab sup start schu/etcd --topology leader
-vagrant ssh node-1 -- sudo hab sup start schu/etcd --topology leader --peer 192.168.222.10
-vagrant ssh node-2 -- sudo hab sup start schu/etcd --topology leader --peer 192.168.222.10
+vagrant ssh node-0 -- sudo hab sup start core/etcd --topology leader --channel "${channel}"
+vagrant ssh node-1 -- sudo hab sup start core/etcd --topology leader --peer 192.168.222.10 --channel "${channel}"
+vagrant ssh node-2 -- sudo hab sup start core/etcd --topology leader --peer 192.168.222.10 --channel "${channel}"
 
 for i in {0..2}; do
   cat <<EOF | vagrant ssh node-${i} -- sudo bash
@@ -36,7 +38,7 @@ EOF
 vagrant ssh node-0 -- sudo hab config apply etcd.default 1 /vagrant/config/svc-etcd.toml
 
 # set up kube-apiserver
-vagrant ssh node-0 -- sudo hab sup start schu/kubernetes-apiserver
+vagrant ssh node-0 -- sudo hab sup start core/kubernetes-apiserver --channel "${channel}"
 
 cat <<'EOF' | vagrant ssh node-0 -- bash
 for f in /vagrant/certificates/{kubernetes.pem,kubernetes-key.pem,ca.pem,ca-key.pem}; do sudo hab file upload kubernetes-apiserver.default 1 "${f}"; done
@@ -48,7 +50,7 @@ until version=$(curl --cacert certificates/ca.pem --cert certificates/admin.pem 
 echo "${version}"
 
 # set up the kube-controller-manager
-vagrant ssh node-0 -- sudo hab sup start schu/kubernetes-controller-manager
+vagrant ssh node-0 -- sudo hab sup start core/kubernetes-controller-manager --channel "${channel}"
 
 cat <<'EOF' | vagrant ssh node-0 -- bash
 for f in /vagrant/certificates/{ca.pem,ca-key.pem}; do sudo hab file upload kubernetes-controller-manager.default 1 "${f}"; done
@@ -56,7 +58,7 @@ EOF
 vagrant ssh node-0 -- sudo hab config apply kubernetes-controller-manager.default 1 /vagrant/config/svc-kubernetes-controller-manager.toml
 
 # set up the kube-scheduler
-vagrant ssh node-0 -- sudo hab sup start schu/kubernetes-scheduler
+vagrant ssh node-0 -- sudo hab sup start core/kubernetes-scheduler --channel "${channel}"
 
 # wait a moment for the kube-scheduler to start
 sleep 5
@@ -114,7 +116,7 @@ for i in {0..2}; do
   cat <<EOF | vagrant ssh node-${i} -- sudo bash
 mkdir -p /var/lib/kube-proxy
 cp /vagrant/config/kube-proxy.kubeconfig /var/lib/kube-proxy/kubeconfig
-hab sup start schu/kubernetes-proxy
+hab sup start core/kubernetes-proxy --channel "${channel}"
 hab config apply kubernetes-proxy.default 1 /vagrant/config/svc-kubernetes-proxy.toml # noop on repeated calls
 EOF
 done
@@ -150,7 +152,9 @@ CNI_CONFIG
 EOF
   cat <<'EOF' | vagrant ssh node-${i} -- sudo bash
 for f in /vagrant/certificates/{$(hostname)/node.pem,$(hostname)/node-key.pem,ca.pem} /vagrant/config/$(hostname)/kubeconfig; do sudo cp "${f}" "/var/lib/kubelet-config/"; done
-sudo hab sup start schu/kubernetes-kubelet
+EOF
+  cat <<EOF | vagrant ssh node-${i} -- sudo bash
+sudo hab sup start core/kubernetes-kubelet --channel "${channel}"
 sudo hab config apply kubernetes-kubelet.default 1 /vagrant/config/svc-kubelet.toml # noop on repeated calls
 EOF
 done
