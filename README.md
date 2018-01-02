@@ -13,7 +13,7 @@ Kubernetes components are [Habitat](habitat.sh) packages and services.
 ## Quickstart
 
 ```
-vagrant destroy -f && ./scripts/setup
+vagrant destroy -f ; ./scripts/setup
 ```
 
 The above command can be used to setup everything from scratch with a single
