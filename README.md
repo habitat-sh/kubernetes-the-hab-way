@@ -7,8 +7,10 @@ Kubernetes components are [Habitat](habitat.sh) packages and services.
 
 * Linux or MacOS on the host (Windows is not supported)
 * [Vagrant](https://www.vagrantup.com/downloads.html)
+* [Virtual Box](https://www.virtualbox.org/wiki/Downloads)
 * [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
 * [cfssl](https://github.com/cloudflare/cfssl#installation) (with cfssljson)
+* [jq](https://stedolan.github.io/jq/download/) Command-line JSON processor
 
 ## Quickstart
 
