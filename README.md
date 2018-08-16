@@ -306,6 +306,16 @@ node-1    Ready     <none>    23m       v1.8.2
 node-2    Ready     <none>    23m       v1.8.2
 ```
 
+### Make node names resolvable for k8s components
+```
+# On each node
+cat >>/etc/hosts <<DNS_IPS
+192.168.222.10 node-0
+192.168.222.11 node-1
+192.168.222.12 node-2
+DNS_IPS
+```
+
 ## Smoke test
 
 Test the setup by creating a Nginx deployment, expose it and send a request
