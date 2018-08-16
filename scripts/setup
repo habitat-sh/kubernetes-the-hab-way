@@ -158,3 +158,14 @@ sudo hab sup start core/kubernetes-kubelet --channel "${channel}"
 sudo hab config apply kubernetes-kubelet.default 1 /vagrant/config/svc-kubelet.toml # noop on repeated calls
 EOF
 done
+
+# Make node names resolvable for k8s components
+for i in {0..2}; do
+  cat <<EOF | vagrant ssh node-${i} -- sudo bash
+cat >>/etc/hosts <<DNS_IPS
+192.168.222.10 node-0
+192.168.222.11 node-1
+192.168.222.12 node-2
+DNS_IPS
+EOF
+done
