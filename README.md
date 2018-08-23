@@ -321,6 +321,12 @@ cat >>/etc/hosts <<DNS_IPS
 DNS_IPS
 ```
 
+### Add DNS support
+```
+# on the host
+kubectl create -f manifests/kube-dns.yaml
+```
+
 ## Smoke test
 
 Test the setup by creating a Nginx deployment, expose it and send a request
@@ -334,4 +340,22 @@ sudo route -n add -net 10.32.0.0/24 192.168.222.10
 
 # Run the smoke test
 ./scripts/smoke-test
+```
+
+## DNS test
+Verify that kube-dns works
+
+```
+# On the host
+kubectl run --rm -ti --restart=Never --image=busybox:1.28.0-glibc busybox -- nslookup kubernetes
+```
+
+Output should look like this:
+```
+Server:    10.32.0.10
+Address 1: 10.32.0.10 kube-dns.kube-system.svc.cluster.local
+
+Name:      kubernetes
+Address 1: 10.32.0.1 kubernetes.default.svc.cluster.local
+pod "busybox" deleted
 ```

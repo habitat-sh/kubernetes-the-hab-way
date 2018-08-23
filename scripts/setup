@@ -173,3 +173,6 @@ cat >>/etc/hosts <<DNS_IPS
 DNS_IPS
 EOF
 done
+
+# Add DNS support
+kubectl create -f manifests/kube-dns.yaml
