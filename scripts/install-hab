@@ -8,7 +8,7 @@ mkdir -p "${tmpdir}"
 pushd "${tmpdir}" >/dev/null
 trap 'popd >/dev/null; rm -rf "${tmpdir}"' EXIT
 
-readonly hab_bintray_url="https://api.bintray.com/content/habitat/stable/linux/x86_64/hab-%24latest-x86_64-linux.tar.gz?bt_package=hab-x86_64-linux"
+readonly hab_bintray_url="https://dl.bintray.com/habitat/stable/linux/x86_64/hab-0.61.0-20180815171844-x86_64-linux.tar.gz"
 
 curl -sSL "${hab_bintray_url}" -o hab.tar.gz
 tar -xvf hab.tar.gz --strip-components 1
