@@ -84,8 +84,8 @@ use node-0 here):
 
 ```
 # On node-0
-for f in /vagrant/certificates/{etcd.pem,etcd-key.pem,ca.pem}; do sudo hab file upload etcd.default 1 "${f}"; done
-sudo hab config apply etcd.default 1 /vagrant/config/svc-etcd.toml
+for f in /vagrant/certificates/{etcd.pem,etcd-key.pem,ca.pem}; do sudo hab file upload etcd.default $(date +%s) "${f}"; done
+sudo hab config apply etcd.default $(date +%s) /vagrant/config/svc-etcd.toml
 ```
 
 Finally we verify etcd is running:
@@ -128,8 +128,8 @@ configuration to provide the necessary SSL certificates and keys:
 
 ```
 # On node-0
-for f in /vagrant/certificates/{kubernetes.pem,kubernetes-key.pem,ca.pem,ca-key.pem}; do sudo hab file upload kubernetes-apiserver.default 1 "${f}"; done
-sudo hab config apply kubernetes-apiserver.default 1 /vagrant/config/svc-kubernetes-apiserver.toml
+for f in /vagrant/certificates/{kubernetes.pem,kubernetes-key.pem,ca.pem,ca-key.pem}; do sudo hab file upload kubernetes-apiserver.default $(date +%s) "${f}"; done
+sudo hab config apply kubernetes-apiserver.default $(date +%s) /vagrant/config/svc-kubernetes-apiserver.toml
 ```
 
 Verify the API server is running:
@@ -147,8 +147,8 @@ files and configure it accordingly:
 ```
 # On node-0
 sudo hab svc load core/kubernetes-controller-manager
-for f in /vagrant/certificates/{ca.pem,ca-key.pem}; do sudo hab file upload kubernetes-controller-manager.default 1 "${f}"; done
-sudo hab config apply kubernetes-controller-manager.default 1 /vagrant/config/svc-kubernetes-controller-manager.toml
+for f in /vagrant/certificates/{ca.pem,ca-key.pem}; do sudo hab file upload kubernetes-controller-manager.default $(date +%s) "${f}"; done
+sudo hab config apply kubernetes-controller-manager.default $(date +%s) /vagrant/config/svc-kubernetes-controller-manager.toml
 ```
 
 #### kubernetes-scheduler
@@ -240,7 +240,7 @@ Configure and start kube-proxy:
 sudo mkdir -p /var/lib/kube-proxy
 sudo cp /vagrant/config/kube-proxy.kubeconfig /var/lib/kube-proxy/kubeconfig
 sudo hab svc load core/kubernetes-proxy
-sudo hab config apply kubernetes-proxy.default 1 /vagrant/config/svc-kubernetes-proxy.toml
+sudo hab config apply kubernetes-proxy.default $(date +%s) /vagrant/config/svc-kubernetes-proxy.toml
 
 # On node-1 and node-2
 sudo mkdir -p /var/lib/kube-proxy
@@ -293,7 +293,7 @@ cat >/var/lib/kubelet-config/cni/10-bridge.conf <<CNI_CONFIG
 CNI_CONFIG
 for f in /vagrant/certificates/{$(hostname)/node.pem,$(hostname)/node-key.pem,ca.pem} /vagrant/config/$(hostname)/kubeconfig; do sudo cp "${f}" "/var/lib/kubelet-config/"; done
 sudo hab svc load core/kubernetes-kubelet
-sudo hab config apply kubernetes-kubelet.default 1 /vagrant/config/svc-kubelet.toml # noop on repeated calls
+sudo hab config apply kubernetes-kubelet.default $(date +%s) /vagrant/config/svc-kubelet.toml # noop on repeated calls
 ```
 
 Verify the 3 nodes are up and ready:
