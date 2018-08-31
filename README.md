@@ -359,3 +359,17 @@ Name:      kubernetes
 Address 1: 10.32.0.1 kubernetes.default.svc.cluster.local
 pod "busybox" deleted
 ```
+
+## Updating Kubernetes components to patch versions
+You can update the kubernetes components from one patch version to the next, e.g `1.11.1` to `1.11.2` with the following commands.
+
+```
+# On the host
+./scripts/updates/update-kube-apiserver # updates kubernetes apiserver
+
+./scripts/updates/update-kube-controller-manager # updates kubernetes controller manager
+
+./scripts/updates/update-kube-proxy # updates kubernetes proxy
+
+./scripts/updates/update-kube-scheduler # updates kubernetes scheduler
+```
