@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -euo pipefail
+set -x
+
+readonly origin="${1:-core}"
+
+kubectl cordon node-0
+vagrant ssh node-0 -- sudo hab svc unload "${origin}"/kubernetes-scheduler
+vagrant ssh node-0 -- sudo hab pkg install "${origin}"/kubernetes-scheduler
+vagrant ssh node-0 -- sudo hab svc load "${origin}"/kubernetes-scheduler
+kubectl uncordon node-0
