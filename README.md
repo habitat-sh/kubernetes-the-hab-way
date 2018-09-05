@@ -365,13 +365,13 @@ You can update the kubernetes components from one patch version to the next, e.g
 
 ```
 # On the host
-./scripts/updates/update-kube-apiserver # updates kubernetes apiserver
+origin=core ./scripts/updates/update-kube-apiserver # updates kubernetes apiserver
 
-./scripts/updates/update-kube-controller-manager # updates kubernetes controller manager
+origin=core ./scripts/updates/update-kube-controller-manager # updates kubernetes controller manager
 
-./scripts/updates/update-kube-proxy # updates kubernetes proxy
+origin=core ./scripts/updates/update-kube-proxy # updates kubernetes proxy
 
-./scripts/updates/update-kube-scheduler # updates kubernetes scheduler
+origin=core ./scripts/updates/update-kube-scheduler # updates kubernetes scheduler
 
-./scripts/updates/update-kubelet # updates kubelet
+origin=core ./scripts/updates/update-kubelet # updates kubelet
 ```
