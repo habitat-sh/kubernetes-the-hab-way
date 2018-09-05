@@ -6,9 +6,9 @@ set -x
 readonly origin="${origin:-core}"
 
 for i in {0..2}; do
-    kubectl cordon node-${i}
-    vagrant ssh node-${i} -- sudo hab svc unload "${origin}"/kubernetes-proxy
-    vagrant ssh node-${i} -- sudo hab pkg install "${origin}"/kubernetes-proxy
-    vagrant ssh node-${i} -- sudo hab svc load "${origin}"/kubernetes-proxy
-    kubectl uncordon node-${i}
+  kubectl cordon node-${i}
+  vagrant ssh node-${i} -- sudo hab svc unload "${origin}"/kubernetes-proxy
+  vagrant ssh node-${i} -- sudo hab pkg install "${origin}"/kubernetes-proxy
+  vagrant ssh node-${i} -- sudo hab svc load "${origin}"/kubernetes-proxy
+  kubectl uncordon node-${i}
 done

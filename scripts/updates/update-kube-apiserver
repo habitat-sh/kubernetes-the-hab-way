@@ -9,6 +9,9 @@ kubectl cordon node-0
 vagrant ssh node-0 -- sudo hab svc unload "${origin}"/kubernetes-apiserver
 vagrant ssh node-0 -- sudo hab pkg install "${origin}"/kubernetes-apiserver
 vagrant ssh node-0 -- sudo hab svc load "${origin}"/kubernetes-apiserver
-until version=$(curl --cacert certificates/ca.pem --cert certificates/admin.pem --key certificates/admin-key.pem https://192.168.222.10:6443/version); do echo "waiting for kube-apiserver to come up"; sleep 1; done
+until version=$(curl --cacert certificates/ca.pem --cert certificates/admin.pem --key certificates/admin-key.pem https://192.168.222.10:6443/version); do
+  echo "waiting for kube-apiserver to come up"
+  sleep 1
+done
 echo "${version}"
 kubectl uncordon node-0
