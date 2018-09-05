@@ -1,0 +1,58 @@
+#!/bin/bash
+
+set -euo pipefail
+set -x
+
+readonly dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly origin="${origin:-core}"
+readonly version="${version:-}"
+
+upgrade_kubelet() {
+  local -r node="node-${1}"
+
+  echo -e "Updating kubelet on ${node}..."
+
+  kubectl cordon "${node}"
+  vagrant ssh "${node}" -- sudo hab svc unload "${current_pkg_ident}"
+  vagrant ssh "${node}" -- sudo hab pkg install "${new_pkg_ident}"
+  vagrant ssh "${node}" -- sudo hab svc load "${new_pkg_ident}"
+  kubectl uncordon "${node}"
+
+  wait_for_node_ready
+}
+
+wait_for_node_ready() {
+  local status
+  local counter="0"
+
+  while [[ $counter -lt 15 ]]; do
+    state=$(kubectl get nodes "${node}" -o jsonpath="{.status.conditions[-1:]['type', 'status']}")
+    if [[ "${state}" == "Ready True" ]]; then
+      return 0
+    else
+      counter=$((counter + 1))
+      sleep 1
+    fi
+  done
+
+  echo "Timed out waiting for ${node} to be ready."
+  return 1
+}
+
+main() {
+  pushd "${dir}/../../" >/dev/null
+  trap 'popd >/dev/null' EXIT
+
+  current_pkg_ident="${origin}/kubernetes-kubelet"
+  if [[ -n "${version}" ]]; then
+    readonly new_pkg_ident="${current_pkg_ident}/${version}"
+  else
+    readonly new_pkg_ident="${current_pkg_ident}"
+  fi
+
+  for i in {0..2}; do
+    upgrade_kubelet ${i}
+  done
+}
+
+main "$@"

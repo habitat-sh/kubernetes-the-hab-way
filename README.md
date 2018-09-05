@@ -372,4 +372,6 @@ You can update the kubernetes components from one patch version to the next, e.g
 ./scripts/updates/update-kube-proxy # updates kubernetes proxy
 
 ./scripts/updates/update-kube-scheduler # updates kubernetes scheduler
+
+./scripts/updates/update-kubelet # updates kubelet
 ```
