@@ -23,11 +23,16 @@ wait_for_controller_ready() {
   return 1
 }
 
-kubectl cordon node-0
-vagrant ssh node-0 -- sudo hab svc unload "${origin}"/kubernetes-controller-manager
-vagrant ssh node-0 -- sudo hab pkg install "${origin}"/kubernetes-controller-manager
-vagrant ssh node-0 -- sudo hab svc load "${origin}"/kubernetes-controller-manager
+main() {
+  kubectl cordon node-0
 
-wait_for_controller_ready
+  vagrant ssh node-0 -- sudo hab svc unload "${origin}"/kubernetes-controller-manager
+  vagrant ssh node-0 -- sudo hab pkg install "${origin}"/kubernetes-controller-manager
+  vagrant ssh node-0 -- sudo hab svc load "${origin}"/kubernetes-controller-manager
 
-kubectl uncordon node-0
+  wait_for_controller_ready
+
+  kubectl uncordon node-0
+}
+
+main "$@"
