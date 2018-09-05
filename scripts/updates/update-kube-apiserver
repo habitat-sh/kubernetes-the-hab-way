@@ -3,7 +3,7 @@
 set -euo pipefail
 set -x
 
-readonly origin="${1:-core}"
+readonly origin="${origin:-core}"
 
 kubectl cordon node-0
 vagrant ssh node-0 -- sudo hab svc unload "${origin}"/kubernetes-apiserver
