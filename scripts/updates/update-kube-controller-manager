@@ -3,10 +3,32 @@
 set -euo pipefail
 set -x
 
-readonly origin="${1:-core}"
+readonly origin="${origin:-core}"
 
-kubectl cordon node-0
-vagrant ssh node-0 -- sudo hab svc unload "${origin}"/kubernetes-controller-manager
-vagrant ssh node-0 -- sudo hab pkg install "${origin}"/kubernetes-controller-manager
-vagrant ssh node-0 -- sudo hab svc load "${origin}"/kubernetes-controller-manager
-kubectl uncordon node-0
+wait_for_controller_ready() {
+  local state
+  local counter="0"
+
+  while [[ $counter -lt 15 ]]; do
+    state=$(kubectl get cs controller-manager -o jsonpath="{.conditions[].type}")
+    if [[ "${state}" == "Healthy" ]]; then
+      return 0
+    else
+      counter=$((counter + 1))
+      sleep 2
+    fi
+  done
+
+  echo "Timed out waiting for controller-manager to be ready."
+  return 1
+}
+
+main() {
+  vagrant ssh node-0 -- sudo hab svc unload "${origin}"/kubernetes-controller-manager
+  vagrant ssh node-0 -- sudo hab pkg install "${origin}"/kubernetes-controller-manager
+  vagrant ssh node-0 -- sudo hab svc load "${origin}"/kubernetes-controller-manager
+
+  wait_for_controller_ready
+}
+
+main "$@"

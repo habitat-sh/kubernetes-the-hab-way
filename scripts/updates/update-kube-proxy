@@ -3,12 +3,38 @@
 set -euo pipefail
 set -x
 
-readonly origin="${1:-core}"
+readonly origin="${origin:-core}"
 
-for i in {0..2}; do
+wait_for_kube_proxy_ready() {
+  local IP
+  local status_code
+
+  IP="192.168.222.1${i}"
+  while [[ $counter -lt 15 ]]; do
+    status_code=$(curl -I -s "${IP}":10256/healthz | head -n 1 | cut -d " " -f2)
+    if [[ "${status_code}" == "200" ]]; then
+      return 0
+    else
+      counter=$((counter + 1))
+      sleep 1
+    fi
+  done
+
+  echo "Timed out waiting for node with IP: ${IP} to be ready."
+  return 1
+}
+
+main() {
+  for i in {0..2}; do
     kubectl cordon node-${i}
     vagrant ssh node-${i} -- sudo hab svc unload "${origin}"/kubernetes-proxy
     vagrant ssh node-${i} -- sudo hab pkg install "${origin}"/kubernetes-proxy
     vagrant ssh node-${i} -- sudo hab svc load "${origin}"/kubernetes-proxy
+
+    wait_for_kube_proxy_ready
+
     kubectl uncordon node-${i}
-done
+  done
+}
+
+main "$@"

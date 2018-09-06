@@ -22,7 +22,7 @@ upgrade_kubelet() {
 }
 
 wait_for_node_ready() {
-  local status
+  local state
   local counter="0"
 
   while [[ $counter -lt 15 ]]; do
