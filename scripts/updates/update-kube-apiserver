@@ -5,7 +5,6 @@ set -x
 
 readonly origin="${origin:-core}"
 
-kubectl cordon node-0
 vagrant ssh node-0 -- sudo hab svc unload "${origin}"/kubernetes-apiserver
 vagrant ssh node-0 -- sudo hab pkg install "${origin}"/kubernetes-apiserver
 vagrant ssh node-0 -- sudo hab svc load "${origin}"/kubernetes-apiserver
@@ -14,4 +13,3 @@ until version=$(curl --cacert certificates/ca.pem --cert certificates/admin.pem 
   sleep 1
 done
 echo "${version}"
-kubectl uncordon node-0
