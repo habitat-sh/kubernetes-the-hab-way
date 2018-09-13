@@ -45,7 +45,7 @@ vagrant ssh node-0 -- sudo chown hab:hab /var/run/kubernetes
 vagrant ssh node-0 -- sudo hab svc load core/kubernetes-apiserver --channel "${channel}"
 
 cat <<'EOF' | vagrant ssh node-0 -- bash
-for f in /vagrant/certificates/{kubernetes.pem,kubernetes-key.pem,ca.pem,ca-key.pem}; do sudo hab file upload kubernetes-apiserver.default $(date +%s) "${f}"; done
+for f in /vagrant/certificates/{kubernetes.pem,kubernetes-key.pem,ca.pem,ca-key.pem,requestheader-ca.pem,requestheader-ca-key.pem}; do sudo hab file upload kubernetes-apiserver.default $(date +%s) "${f}"; done
 EOF
 vagrant ssh node-0 -- sudo hab config apply kubernetes-apiserver.default $(date +%s) /vagrant/config/svc-kubernetes-apiserver.toml
 

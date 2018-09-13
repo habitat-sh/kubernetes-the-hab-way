@@ -1,0 +1,16 @@
+{
+  "CN": "requestheader",
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "DE",
+      "L": "Berlin",
+      "O": "requestheader",
+      "OU": "CA",
+      "ST": "Berlin"
+    }
+  ]
+}
