@@ -42,7 +42,7 @@ vagrant ssh node-0 -- sudo mkdir -p /var/run/kubernetes
 vagrant ssh node-0 -- sudo chown hab:hab /var/run/kubernetes
 
 # set up kube-apiserver
-vagrant ssh node-0 -- sudo hab svc load core/kubernetes-apiserver --channel "${channel}"
+vagrant ssh node-0 -- sudo hab svc load indradhanush/kubernetes-apiserver --channel "${channel}"
 
 cat <<'EOF' | vagrant ssh node-0 -- bash
 for f in /vagrant/certificates/{kubernetes.pem,kubernetes-key.pem,ca.pem,ca-key.pem,requestheader-ca.pem,requestheader-ca-key.pem}; do sudo hab file upload kubernetes-apiserver.default $(date +%s) "${f}"; done
