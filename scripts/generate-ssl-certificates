@@ -77,3 +77,8 @@ EOF
     -profile=kubernetes \
     - | cfssljson -bare "node-${i}/node"
 done
+
+
+# requestheader CA
+
+cfssl gencert -initca requestheader-csr.json | cfssljson -bare requestheader-ca
